@@ -910,6 +910,86 @@ function renderInvLearning(query) {
   `).join('') + '</div>';
 }
 
+function openManualAddModal() {
+  if (currentInvTab === 'characters') {
+    openModal(`
+      <div class="modal-title">ADD CHARACTER MANUALLY</div>
+      <div class="field-group"><label class="field-label">Name</label><input class="field-input" id="m-add-c-name" placeholder="Character Name" /></div>
+      <div class="field-group"><label class="field-label">Rarity</label>
+        <div class="rarity-picker">${[1,2,3,4,5].map(r => `<button class="rarity-btn" data-r="${r}" onclick="pickManualRarity(${r})">${stars(r)}</button>`).join('')}</div>
+      </div>
+      <input type="hidden" id="m-add-c-rarity" value="3" />
+      <div class="field-group"><label class="field-label">Origin / Location</label><input class="field-input" id="m-add-c-loc" placeholder="Where did you meet them?" /></div>
+      <div class="field-group"><label class="field-label">Tags (comma separated)</label><input class="field-input" id="m-add-c-tags" placeholder="e.g. friend, coder" /></div>
+      <div class="field-group"><label class="field-label">Notes</label><textarea class="field-input" id="m-add-c-notes" placeholder="Optional notes"></textarea></div>
+      <div class="modal-actions">
+        <button class="action-btn success" onclick="confirmManualAddChar()">Add Character</button>
+        <button class="action-btn" style="opacity:0.6" onclick="closeModal()">Cancel</button>
+      </div>
+    `);
+    pickManualRarity(3);
+  } else {
+    // Add learning material
+    openModal(`
+      <div class="modal-title">ADD MATERIAL MANUALLY</div>
+      <div class="field-group"><label class="field-label">Name / Title</label><input class="field-input" id="m-add-m-name" placeholder="Material Name" /></div>
+      <div class="field-group"><label class="field-label">Type</label><select class="field-input" id="m-add-m-type">
+        <option value="Book">📖 Book</option><option value="Course">🎓 Course</option><option value="Article">📄 Article</option>
+        <option value="Video">🎬 Video</option><option value="Tutorial">💻 Tutorial</option><option value="Workshop">🛠️ Workshop</option><option value="Other">📦 Other</option>
+      </select></div>
+      <div class="field-group"><label class="field-label">Source</label><input class="field-input" id="m-add-m-loc" placeholder="Where did you find it?" /></div>
+      <div class="field-group"><label class="field-label">Notes</label><textarea class="field-input" id="m-add-m-notes" placeholder="Optional notes"></textarea></div>
+      <div class="modal-actions">
+        <button class="action-btn success" onclick="confirmManualAddMat()">Add Material</button>
+        <button class="action-btn" style="opacity:0.6" onclick="closeModal()">Cancel</button>
+      </div>
+    `);
+  }
+}
+
+function pickManualRarity(r) {
+  document.getElementById('m-add-c-rarity').value = r;
+  document.querySelectorAll('#modal-content .rarity-btn').forEach(b => {
+    const br = parseInt(b.dataset.r);
+    b.classList.toggle('active', br === r);
+    if (br === r) { b.style.background = RARITY[r].bg; b.style.color = '#fff'; }
+    else { b.style.background = ''; b.style.color = ''; }
+  });
+}
+
+function confirmManualAddChar() {
+  const name = document.getElementById('m-add-c-name').value.trim();
+  if (!name) return;
+  const rarity = parseInt(document.getElementById('m-add-c-rarity').value);
+  const c = {
+    id: 'c' + Date.now(), name, rarity,
+    location: document.getElementById('m-add-c-loc').value.trim() || 'Unknown',
+    notes: document.getElementById('m-add-c-notes').value.trim(),
+    tags: (document.getElementById('m-add-c-tags').value || '').split(',').map(s=>s.trim()).filter(Boolean),
+    obtainedDate: Date.now(),
+  };
+  D.characters.push(c);
+  addXP(rarity * 15, `Added: ${name}`);
+  addLog(`Added ${name} (${RARITY[rarity].label}) manually`);
+  save(); closeModal(); renderInventory();
+}
+
+function confirmManualAddMat() {
+  const name = document.getElementById('m-add-m-name').value.trim();
+  if (!name) return;
+  const mat = {
+    id: 'm' + Date.now(), name,
+    type: document.getElementById('m-add-m-type').value,
+    source: document.getElementById('m-add-m-loc').value.trim() || 'Unknown',
+    notes: document.getElementById('m-add-m-notes').value.trim(),
+    obtainedDate: Date.now(),
+  };
+  D.learningMaterial.push(mat);
+  addXP(20, `Added material: ${name}`);
+  addLog(`Added material: ${name}`);
+  save(); closeModal(); renderInventory();
+}
+
 function openCharDetail(id) {
   const c = D.characters.find(x => x.id === id);
   if (!c) return;

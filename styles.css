@@ -1431,11 +1431,14 @@ body {
 }
 
 .inv-search-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   margin-bottom: 12px;
 }
 
 .inv-search {
-  width: 100%;
+  flex: 1;
   padding: 10px 14px;
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--border-subtle);
@@ -1449,6 +1452,12 @@ body {
 
 .inv-search:focus {
   border-color: var(--border-accent);
+}
+
+.inv-add-btn {
+  padding: 10px 16px;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
 .inv-content {
